@@ -1,0 +1,23 @@
+diff --git a/node_modules/reconnecting-websocket/reconnecting-websocket.ts b/node_modules/reconnecting-websocket/reconnecting-websocket.ts
+index c383282..9717dc9 100644
+--- a/node_modules/reconnecting-websocket/reconnecting-websocket.ts
++++ b/node_modules/reconnecting-websocket/reconnecting-websocket.ts
+@@ -401,7 +401,17 @@ export default class ReconnectingWebSocket {
+         }
+         this._removeListeners();
+         try {
+-            this._ws.close(code, reason);
++            if (this._ws.readyState === this.CLOSING || this._ws.readyState === this.CLOSED) {
++                return;
++            }
++
++            const ws = this._ws as any;
++            if (this._ws.readyState === this.CONNECTING && typeof ws.terminate === 'function') {
++                ws.terminate();
++            } else {
++                this._ws.close(code, reason);
++            }
++
+             this._handleClose(new Events.CloseEvent(code, reason, this));
+         } catch (error) {
+             // ignore
